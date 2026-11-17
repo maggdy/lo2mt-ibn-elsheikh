@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#044d20">
+  <meta name="description" content="منيو لقمة ابن الشيخ - إمبابة - سندوتشات وبرجر وكريب ومكرونة وأرز - اطلب عبر واتساب">
+  <title>لقمة ابن الشيخ | المنيو</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <img class="logo" src="logo.png" alt="لقمة ابن الشيخ" width="370" height="355">
+    <h1 class="sr">لقمة ابن الشيخ</h1>
+    <p class="lead">اختار صنفك، حدد التفاصيل، وابعت طلبك على واتساب</p>
+    <div class="hero-actions">
+      <a id="call" class="btn btn-lime" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg><span id="call-text"></span></a>
+      <a id="map" class="btn btn-ghost" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg><span id="addr"></span></a>
+    </div>
+  </header>
+  <div class="torn" aria-hidden="true"></div>
+
+  <div class="toolbar">
+    <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input id="search" type="search" placeholder="بتدور على إيه؟" autocomplete="off" aria-label="بحث في المنيو"></label>
+    <nav id="chips" class="chips" aria-label="أقسام المنيو"></nav>
+  </div>
+
+  <main id="menu" class="menu"></main>
+  <p id="empty" class="empty" hidden>مفيش أصناف مطابقة لبحثك.</p>
+
+  <footer class="footer">
+    <img src="logo.png" alt="" width="120" height="115">
+    <p id="foot-addr"></p>
+    <a id="foot-call" class="btn btn-lime" href="#"></a>
+  </footer>
+
+  <div id="cartbar" class="cartbar" hidden>
+    <button id="open-cart" type="button">
+      <span class="cb-count" id="cb-count">0</span>
+      <span class="cb-label">عرض الطلب</span>
+      <strong id="cb-total"></strong>
+    </button>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="item-dialog"></dialog>
+  <dialog id="cart-dialog"></dialog>
+
+  <script src="menu-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
