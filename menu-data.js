@@ -85,14 +85,22 @@
     restaurantName: "لقمة ابن الشيخ",
     phone: "01116502424", phoneDisplay: "0111 650 2424",
     whatsappNumber: "201116502424",
+    payment: {
+      instaPayId: "", // ضع عنوان InstaPay هنا
+      beneficiaryName: "لقمة ابن الشيخ",
+      vodafoneCashNumber: "", // ضع رقم محفظة فودافون كاش هنا
+      instaPayDeepLink: "" // اتركه فارغًا إذا لم يتوفر رابط رسمي مدعوم
+    },
     address: "إمبابة - ٨ شارع عبدالله خليفة من شارع الوحدة - بجوار العسكري",
     currency: "ج.م", extras: ex,
+    tableCount: 6, // عدد الترابيزات؛ غيّره حسب عدد ترابيزات المطعم
+    tableNumbers: null,
     categories: [
-      { key: "sand", name: "السندوتشات", img: "sandwich.png" }, { key: "burger", name: "البرجر", img: "burger.png" },
-      { key: "fried", name: "فرايد تشيكن", img: "fried.png" }, { key: "pasta", name: "المكرونات", img: "macaroni.png" },
-      { key: "rice", name: "الأرز", img: "rice.png" }, { key: "crepe", name: "الكريبات", img: "crepe.png" },
-      { key: "sweet", name: "الحلو", img: "honey.png" }, { key: "add", name: "الإضافات", img: "fries.png" },
-      { key: "salad", name: "السلطات", img: "salad.png" }, { key: "drink", name: "المشروبات", img: "drink.png" }
+      { key: "sand", name: "السندوتشات", img: "img/sandwich.png" }, { key: "burger", name: "البرجر", img: "img/burger.png" },
+      { key: "fried", name: "فرايد تشيكن", img: "img/fried.png" }, { key: "pasta", name: "المكرونات", img: "img/macaroni.png" },
+      { key: "rice", name: "الأرز", img: "img/rice.png" }, { key: "crepe", name: "الكريبات", img: "img/crepe.png" },
+      { key: "sweet", name: "الحلو", img: "img/honey.png" }, { key: "add", name: "الإضافات", img: "img/fries.png" },
+      { key: "salad", name: "السلطات", img: "img/salad.png" }, { key: "drink", name: "المشروبات", img: "img/drink.png" }
     ],
     items
   };
