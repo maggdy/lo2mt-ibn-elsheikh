@@ -12,7 +12,7 @@
   };
 
   let cart = store.get("lib-cart", []).filter(l => item(l.id) && item(l.id).variants[l.v]);
-  const cust = Object.assign({ type: "delivery", name: "", phone: "", address: "", note: "" }, store.get("lib-cust", {}));
+  const cust = Object.assign({ type: "delivery", name: "", phone: "", address: "", table: "", note: "" }, store.get("lib-cust", {}));
   const unit = l => item(l.id).variants[l.v].price + l.ex.reduce((s, e) => s + (extra(e) ? extra(e).price : 0), 0);
   const lineTotal = l => unit(l) * l.q;
   const total = () => cart.reduce((s, l) => s + lineTotal(l), 0);
@@ -169,8 +169,15 @@
       <div class="sheet-body">${lines}
         <div class="total"><span>إجمالي الأصناف</span><span>${money(total())}</span></div>
         <p class="note">رسوم التوصيل (لو فيه) بتتحدد وقت تأكيد الطلب.</p>
-        <div class="seg"><label><input type="radio" name="type" value="delivery" ${del ? "checked" : ""}><span>توصيل</span></label><label><input type="radio" name="type" value="pickup" ${del ? "" : "checked"}><span>استلام من المطعم</span></label></div>
+        <div class="seg order-types">
+          <label><input type="radio" name="type" value="delivery" ${cust.type === "delivery" ? "checked" : ""}><span>🛵 توصيل</span></label>
+          <label><input type="radio" name="type" value="pickup" ${cust.type === "pickup" ? "checked" : ""}><span>🛍️ استلام</span></label>
+          <label><input type="radio" name="type" value="dinein" ${cust.type === "dinein" ? "checked" : ""}><span>🍽️ في المطعم</span></label>
+        </div>
         <div class="form">
+          <label class="f" id="table-f" ${cust.type === "dinein" ? "" : "hidden"}>اختار رقم الترابيزة
+            <select class="input" name="table"><option value="">اختار الترابيزة</option>${(D.tableNumbers || Array.from({length: D.tableCount || 20}, (_,i) => i+1)).map(n => `<option value="${esc(n)}" ${String(cust.table) === String(n) ? "selected" : ""}>ترابيزة ${esc(n)}</option>`).join("")}</select>
+          </label>
           <label class="f">الاسم<input class="input" name="name" autocomplete="name" value="${esc(cust.name)}"></label>
           <label class="f">رقم التليفون<input class="input" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" value="${esc(cust.phone)}"></label>
           <label class="f" id="addr-f" ${del ? "" : "hidden"}>العنوان بالتفصيل<textarea name="address" rows="2" placeholder="الشارع، رقم العمارة، الدور، علامة مميزة">${esc(cust.address)}</textarea></label>
@@ -194,36 +201,115 @@
   });
   $("#cart-dialog").addEventListener("input", e => { if (e.target.name in cust) { cust[e.target.name] = e.target.value; store.set("lib-cust", cust); } });
   $("#cart-dialog").addEventListener("change", e => {
-    if (e.target.name === "type") { cust.type = e.target.value; store.set("lib-cust", cust); $("#addr-f").hidden = cust.type !== "delivery"; }
+    if (e.target.name === "type") {
+      cust.type = e.target.value;
+      store.set("lib-cust", cust);
+      $("#addr-f").hidden = cust.type !== "delivery";
+      $("#table-f").hidden = cust.type !== "dinein";
+    }
+    if (e.target.name === "table") { cust.table = e.target.value; store.set("lib-cust", cust); }
   });
-  $("#cart-dialog").addEventListener("click", e => { if (e.target.id === "send") send(); });
+  $("#cart-dialog").addEventListener("click", e => { if (e.target.id === "send") beginCheckout(); });
 
-  function send() {
+  let paymentMethod = "instapay";
+  function checkoutError(msg, name) {
     const dlg = $("#cart-dialog"), err = dlg.querySelector("#err");
-    const fail = (msg, name) => { err.textContent = msg; const f = dlg.querySelector(`[name="${name}"]`); if (f) f.focus(); };
+    if (err) err.textContent = msg;
+    const f = name && dlg.querySelector(`[name="${name}"]`);
+    if (f) f.focus();
+  }
+  function beginCheckout() {
     const phone = toEn(cust.phone).replace(/[\s-]/g, "");
-    if (!cust.name.trim()) return fail("اكتب اسمك من فضلك.", "name");
-    if (!/^01[0125]\d{8}$/.test(phone)) return fail("رقم التليفون لازم يكون 11 رقم ويبدأ بـ 01.", "phone");
-    if (cust.type === "delivery" && cust.address.trim().length < 6) return fail("اكتب العنوان بالتفصيل عشان نوصلك.", "address");
+    if (!cust.name.trim()) return checkoutError("اكتب اسمك من فضلك.", "name");
+    if (!/^01[0125]\d{8}$/.test(phone)) return checkoutError("رقم التليفون لازم يكون 11 رقم ويبدأ بـ 01.", "phone");
+    if (cust.type === "delivery" && cust.address.trim().length < 6) return checkoutError("اكتب العنوان بالتفصيل عشان نوصلك.", "address");
+    if (cust.type === "dinein" && !cust.table) return checkoutError("اختار رقم الترابيزة من فضلك.", "table");
     const number = String(D.whatsappNumber || "").replace(/\D/g, "");
-    if (!number || String(D.whatsappNumber).includes("X") || number.length < 10) return fail("رقم واتساب المطعم مش متحط في menu-data.js.", "name");
-    err.textContent = "";
-    const L = ["السلام عليكم، عايز أطلب من " + D.restaurantName + ":", ""];
+    if (!number || String(D.whatsappNumber).includes("X") || number.length < 10) return checkoutError("رقم واتساب المطعم غير مضبوط في menu-data.js.", "name");
+    cust.phone = phone; store.set("lib-cust", cust);
+    $("#cart-dialog").close();
+    openPayment();
+  }
+  function openPayment() {
+    let dlg = $("#payment-dialog");
+    if (!dlg) { dlg = document.createElement("dialog"); dlg.id = "payment-dialog"; document.body.appendChild(dlg); }
+    const cfg = D.payment || {};
+    const amount = total();
+    const cash = paymentMethod === "cash";
+    const electronic = paymentMethod !== "cash";
+    const details = paymentMethod === "instapay" ? (cfg.instaPayId || "لم تتم إضافة عنوان InstaPay بعد") : (cfg.vodafoneCashNumber || "لم يتم إضافة رقم فودافون كاش بعد");
+    const methodName = paymentMethod === "instapay" ? "InstaPay" : paymentMethod === "vodafone" ? "Vodafone Cash" : "كاش";
+    dlg.innerHTML = `
+      <div class="sheet-head"><div><h3>اختار طريقة الدفع</h3><p>إجمالي طلبك: ${money(amount)}</p></div><button class="x" type="button" data-close>×</button></div>
+      <div class="sheet-body">
+        <div class="payment-options">
+          <button type="button" class="pay-card ${paymentMethod==="instapay"?"selected":""}" data-method="instapay"><b>💳 InstaPay</b><small>تحويل لحظي</small></button>
+          <button type="button" class="pay-card ${paymentMethod==="vodafone"?"selected":""}" data-method="vodafone"><b>📱 Vodafone Cash</b><small>تحويل من المحفظة</small></button>
+          <button type="button" class="pay-card ${cash?"selected":""}" data-method="cash"><b>💵 الدفع نقدًا</b><small>عند الاستلام / داخل المطعم</small></button>
+        </div>
+        ${electronic ? `<section class="payment-details"><b>بيانات التحويل – ${methodName}</b><p>${esc(details)}</p><p>اسم المستفيد: ${esc(cfg.beneficiaryName || D.restaurantName)}</p>
+          <button type="button" class="link" id="copy-payment">نسخ بيانات الدفع</button>
+          ${paymentMethod==="instapay" && cfg.instaPayDeepLink ? `<a class="cta payment-open" href="${esc(cfg.instaPayDeepLink)}">الدفع عبر InstaPay</a>` : ""}
+          ${paymentMethod==="vodafone" && cfg.vodafoneCashNumber ? `<a class="cta payment-open" href="tel:${esc(cfg.vodafoneCashNumber)}">فتح الاتصال</a>` : ""}
+        </section>
+        <div class="form">
+          <label class="f">رقم العملية (مطلوب)<input class="input" id="transaction-id" autocomplete="off" placeholder="أدخل رقم العملية"></label>
+          <label class="f">المبلغ المحوّل<input class="input" id="paid-amount" inputmode="decimal" type="number" min="0" step="0.01" value="${amount}"></label>
+          <label class="f">صورة إيصال التحويل (اختياري)<input class="input" id="receipt" type="file" accept="image/*"></label>
+          <label class="confirm-payment"><input type="checkbox" id="payment-confirm"> أؤكد أنني قمت بتحويل المبلغ الموضح أعلاه</label>
+          <p class="note">تنبيه: إدخال البيانات لا يؤكد وصول الأموال. سيراجع المطعم التحويل يدويًا. صورة الإيصال لا تُرفق تلقائيًا برسالة واتساب؛ أرسلها في المحادثة بعد فتحها.</p>
+        </div>` : `<div class="payment-details"><b>الدفع نقدًا</b><p>${cust.type === "delivery" ? "سيتم الدفع نقدًا عند استلام الطلب." : "سيتم الدفع نقدًا داخل المطعم."}</p></div>`}
+      </div>
+      <div class="sheet-foot payment-footer"><button class="link" type="button" id="back-cart">رجوع للسلة</button><button class="cta wa" type="button" id="confirm-payment-order">${cash?"تأكيد وإرسال الطلب":"تأكيد البيانات وإرسال الطلب"}</button></div>`;
+    if (!dlg.open) dlg.showModal();
+    dlg.querySelector("[data-close]").addEventListener("click", () => dlg.close());
+    dlg.querySelectorAll("[data-method]").forEach(b => b.addEventListener("click", () => { paymentMethod = b.dataset.method; openPayment(); }));
+    dlg.querySelector("#back-cart").addEventListener("click", () => { dlg.close(); openCart(); });
+    const copy = dlg.querySelector("#copy-payment");
+    if (copy) copy.addEventListener("click", async () => {
+      const txt = paymentMethod === "instapay" ? (cfg.instaPayId || "") : (cfg.vodafoneCashNumber || "");
+      if (!txt) return toast("بيانات الدفع غير مضافة بعد");
+      try { await navigator.clipboard.writeText(txt); toast("تم نسخ بيانات الدفع"); } catch { toast("تعذر النسخ، اضغط مطولًا على البيانات"); }
+    });
+    dlg.querySelector("#confirm-payment-order").addEventListener("click", () => {
+      let payment = { method: paymentMethod, amount: cash ? 0 : Number(dlg.querySelector("#paid-amount").value), transactionId: "", status: cash ? "الدفع نقدًا عند الاستلام / داخل المطعم" : "أفاد العميل بإتمام التحويل – في انتظار مراجعة المطعم" };
+      if (!cash) {
+        payment.transactionId = dlg.querySelector("#transaction-id").value.trim();
+        const entered = payment.amount;
+        if (!payment.transactionId) return toast("اكتب رقم العملية");
+        if (!Number.isFinite(entered) || entered <= 0) return toast("اكتب المبلغ المحوّل");
+        if (Math.abs(entered - amount) > 0.009) return toast("المبلغ لازم يساوي إجمالي الطلب: " + money(amount));
+        if (!dlg.querySelector("#payment-confirm").checked) return toast("أكد تنفيذ التحويل أولًا");
+        const file = dlg.querySelector("#receipt").files[0];
+        if (file && file.size > 5 * 1024 * 1024) return toast("حجم صورة الإيصال يجب ألا يتجاوز 5 ميجابايت");
+        if (file) payment.receiptName = file.name;
+      }
+      dlg.close(); sendOrder(payment);
+    });
+  }
+  function sendOrder(payment) {
+    const number = String(D.whatsappNumber || "").replace(/\D/g, "");
+    const L = ["طلب جديد من " + D.restaurantName, "", "بيانات العميل:", "الاسم: " + cust.name.trim(), "رقم الهاتف: " + cust.phone,
+      "نوع الطلب: " + (cust.type === "delivery" ? "توصيل" : cust.type === "pickup" ? "استلام من المطعم" : "تناول داخل المطعم")];
+    if (cust.type === "delivery") L.push("العنوان: " + cust.address.trim());
+    if (cust.type === "dinein") L.push("رقم الترابيزة: " + cust.table);
+    L.push("", "تفاصيل الطلب:");
     cart.forEach((l, i) => {
       const it = item(l.id), v = it.variants[l.v];
       L.push(nf(i + 1) + ") " + it.name + (v.label ? " (" + v.label + ")" : "") + " × " + nf(l.q));
-      if (l.ex.length) L.push("   + " + l.ex.map(e => extra(e).name).join("، "));
+      if (l.ex.length) L.push("   الإضافات: " + l.ex.map(e => extra(e).name).join("، "));
       if (l.ch) L.push("   سلطة: " + l.ch);
       if (l.note) L.push("   ملاحظة: " + l.note);
-      L.push("   = " + money(lineTotal(l)));
+      L.push("   السعر: " + money(lineTotal(l)));
     });
-    L.push("", "إجمالي الأصناف: " + money(total()), "نوع الطلب: " + (cust.type === "delivery" ? "توصيل" : "استلام من المطعم"),
-      "الاسم: " + cust.name.trim(), "التليفون: " + phone);
-    if (cust.type === "delivery") L.push("العنوان: " + cust.address.trim());
-    if (cust.note.trim()) L.push("ملاحظات: " + cust.note.trim());
-    const a = document.createElement("a");
-    a.href = "https://wa.me/" + number + "?text=" + encodeURIComponent(L.join("\n"));
-    a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
+    L.push("", "إجمالي الأصناف: " + money(total()), "", "بيانات الدفع:",
+      "طريقة الدفع: " + (payment.method === "instapay" ? "InstaPay" : payment.method === "vodafone" ? "Vodafone Cash" : "كاش"));
+    if (payment.method === "cash") L.push("حالة الدفع: " + payment.status, "الإجمالي المطلوب: " + money(total()));
+    else L.push("المبلغ الذي أفاد العميل بتحويله: " + money(payment.amount), "رقم العملية: " + payment.transactionId,
+      "حالة الدفع: " + payment.status, "يرجى مراجعة عملية الدفع وتأكيد وصول المبلغ قبل تجهيز الطلب.");
+    if (cust.note.trim()) L.push("", "ملاحظات عامة: " + cust.note.trim());
+    const url = "https://wa.me/" + number + "?text=" + encodeURIComponent(L.join("\n"));
+    const a = document.createElement("a"); a.href = url; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
   }
 
   $("#open-cart").addEventListener("click", openCart);

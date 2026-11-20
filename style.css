@@ -114,3 +114,24 @@ textarea:focus, .input:focus { outline: 0; border-color: var(--g7); }
 .note { margin: 0; font-size: 12px; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 .sheet-foot .cta.wa { width: 100%; }
+
+
+/* ---------- الدفع الإلكتروني ---------- */
+.payment-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.pay-card { min-width:0; border:2px solid var(--line); border-radius:15px; background:#fff; padding:13px 7px; display:grid; gap:5px; text-align:center; color:var(--g8); }
+.pay-card b { font-size:13px; }
+.pay-card small { font-size:10px; color:var(--muted); }
+.pay-card.selected { border-color:var(--g7); background:#eaf7e2; box-shadow:0 0 0 1px var(--g7); }
+.payment-details { background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px; display:grid; gap:8px; }
+.payment-details p { margin:0; overflow-wrap:anywhere; font-weight:700; }
+.payment-open { display:inline-flex; justify-content:center; text-decoration:none; border-radius:12px; padding:10px; background:#eaf7e2; color:var(--g8); font-weight:800; }
+.confirm-payment { display:flex; align-items:flex-start; gap:8px; font-size:13px; font-weight:700; }
+.confirm-payment input { width:18px; height:18px; flex:none; accent-color:var(--g7); }
+.payment-footer { flex-wrap:wrap; }
+.payment-footer .cta { min-width:190px; }
+@media(max-width:390px) { .payment-options { grid-template-columns:1fr; } .pay-card { display:flex; align-items:center; justify-content:space-between; text-align:right; padding:10px 14px; } }
+
+/* اختيار نوع الطلب: توصيل / استلام / في المطعم */
+.order-types { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.order-types label span { padding: 10px 5px; font-size: 13px; }
+#table-f select { cursor: pointer; }
