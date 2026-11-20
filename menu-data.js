@@ -96,12 +96,17 @@
     tableCount: 20, // عدد الترابيزات؛ غيّره حسب عدد ترابيزات المطعم
     tableNumbers: null,
     categories: [
-      { key: "sand", name: "السندوتشات", img: "img/sandwich.png" }, { key: "burger", name: "البرجر", img: "img/burger.png" },
-      { key: "fried", name: "فرايد تشيكن", img: "img/fried.png" }, { key: "pasta", name: "المكرونات", img: "img/macaroni.png" },
-      { key: "rice", name: "الأرز", img: "img/rice.png" }, { key: "crepe", name: "الكريبات", img: "img/crepe.png" },
-      { key: "sweet", name: "الحلو", img: "img/honey.png" }, { key: "add", name: "الإضافات", img: "img/fries.png" },
-      { key: "salad", name: "السلطات", img: "img/salad.png" }, { key: "drink", name: "المشروبات", img: "img/drink.png" }
-    ],
-    items
+  { key: "sand", name: "السندوتشات", img: "./img/sandwich.png" },
+  { key: "burger", name: "البرجر", img: "./img/burger.png" },
+  { key: "fried", name: "فرايد تشيكن", img: "./img/fried.png" },
+  { key: "pasta", name: "المكرونات", img: "./img/macaroni.png" },
+  { key: "rice", name: "الأرز", img: "./img/rice.png" },
+  { key: "crepe", name: "الكريبات", img: "./img/crepe.png" },
+  { key: "sweet", name: "الحلو", img: "./img/honey.png" },
+  { key: "add", name: "الإضافات", img: "./img/fries.png" },
+  { key: "salad", name: "السلطات", img: "./img/salad.png" },
+  { key: "drink", name: "المشروبات", img: "./img/drink.png" }
+],
+items
   };
 })();
